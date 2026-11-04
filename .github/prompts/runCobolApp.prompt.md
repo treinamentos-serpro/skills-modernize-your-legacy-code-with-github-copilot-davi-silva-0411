@@ -1,6 +1,6 @@
 ---
 agent: 'agent'
-model: gpt-4.1
+model: Claude Opus 5.5 (copilot)
 description: 'Compile and run the Cobol accounting system'
 ---
 
