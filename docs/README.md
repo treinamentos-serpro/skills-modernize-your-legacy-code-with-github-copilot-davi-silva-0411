@@ -44,6 +44,28 @@ The balance is maintained in the program's working storage while the program run
 - Entered amounts are not checked for positivity. In particular, negative or otherwise invalid amounts may produce unintended results; add validation before using this as a real account system.
 - The account is not associated with a student record, and balance changes are not persisted across program runs.
 
+## Node.js port (`src/accounting`)
+
+`src/accounting/index.js` keeps the business rules above but does **not** reproduce the COBOL legacy quirks (test plan cases marked **[Legacy quirk]**). Instead it validates input:
+
+| Input | COBOL behavior | Node.js behavior |
+|---|---|---|
+| Negative amount, e.g. `-100` (TC-029, TC-030) | Sign is dropped; amount is applied as positive | Rejected with "Invalid amount. Please enter a non-negative number (max 999999.99)." |
+| Non-numeric amount, e.g. `abc` (TC-031) | Treated as zero | Rejected with the invalid-amount message |
+| Amount with more than six integer digits (TC-034) | High-order digits truncated | Rejected with the invalid-amount message |
+| Credit that would exceed 999,999.99 (TC-033) | Balance silently overflows | Rejected with "Credit rejected: balance cannot exceed 999999.99." |
+| Credit reaching exactly 999,999.99 (TC-032) | Input truncated to `999999.90` | Balance becomes `999999.99` |
+| Multi-character menu input, e.g. `12` (TC-035) | Only the first digit is used | Treated as an invalid choice |
+
+Rejected input never changes the stored balance. Extra decimal places are still truncated, not rounded (TC-008).
+
+Run the unit tests from `src/accounting`:
+
+```bash
+npm install
+npm test
+```
+
 ## Application data flow
 
 ```mermaid
